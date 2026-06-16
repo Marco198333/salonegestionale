@@ -1,0 +1,15 @@
+# Ignora tutto nella root
+/*
+
+# Ma tieni il .gitignore
+!.gitignore
+
+# Tieni la cartella web
+!/web/
+
+# Dentro web ignora solo roba inutile/generata
+/web/node_modules/
+/web/dist/
+/web/.env
+/web/.env.*
+/web/.DS_Store

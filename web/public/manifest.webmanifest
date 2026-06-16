@@ -1,0 +1,16 @@
+{
+  "name": "SalonePro",
+  "short_name": "SalonePro",
+  "description": "Gestionale parrucchieri con agenda online, prenotazioni, schede colore e WhatsApp.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f2ed",
+  "theme_color": "#2b1b25",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
