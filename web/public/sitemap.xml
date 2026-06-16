@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://salonepro.it/</loc>
+    <loc>https://salonegestionale.it/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/gestionale-parrucchieri.html</loc>
+    <loc>https://salonegestionale.it/gestionale-parrucchieri.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/agenda-parrucchieri-online.html</loc>
+    <loc>https://salonegestionale.it/agenda-parrucchieri-online.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/prenotazioni-online-salone.html</loc>
+    <loc>https://salonegestionale.it/prenotazioni-online-salone.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/schede-colore-parrucchieri.html</loc>
+    <loc>https://salonegestionale.it/schede-colore-parrucchieri.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/prezzi-gestionale-parrucchieri.html</loc>
+    <loc>https://salonegestionale.it/prezzi-gestionale-parrucchieri.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/privacy.html</loc>
+    <loc>https://salonegestionale.it/privacy.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://salonepro.it/cookie-policy.html</loc>
+    <loc>https://salonegestionale.it/cookie-policy.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

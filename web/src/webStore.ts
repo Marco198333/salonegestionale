@@ -195,7 +195,7 @@ export const demoSalon = (): SalonData => {
       name: 'Salone Milano Brera',
       address: 'Via della Moscova 18, Milano',
       phone: '+39 02 9288 0140',
-      bookingUrl: 'https://prenota.salonepro.it/salone-milano-brera',
+      bookingUrl: 'https://prenota.salonegestionale.it/salone-milano-brera',
       googleReviewUrl: 'https://g.page/r/Cbeta/review',
       businessStartHour: 8,
       businessEndHour: 20

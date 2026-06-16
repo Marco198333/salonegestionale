@@ -23,8 +23,8 @@ Prima di pubblicare modifica `web/dist/config.js`:
 
 ```js
 window.SALONE_PRO_CONFIG = {
-  apiBaseUrl: "https://api.salonepro.it",
-  siteUrl: "https://salonepro.it",
+  apiBaseUrl: "https://api.salonegestionale.it",
+  siteUrl: "https://salonegestionale.it",
   allowLocalDemo: false
 };
 ```
@@ -39,7 +39,7 @@ Il login non contiene credenziali demo e non apre preview pubbliche. Sul dominio
 
 ```bash
 SALONE_ADMIN_API_KEY=<chiave-admin> npm run web:provision -- \
-  --api https://salonepro.it \
+  --api https://salonegestionale.it \
   --name "Salone Rossi" \
   --email titolare@salonerossi.it
 ```

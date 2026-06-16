@@ -1,6 +1,6 @@
 window.SALONE_PRO_CONFIG = {
   apiBaseUrl: "",
-  siteUrl: "https://salonepro.it",
+  siteUrl: "https://salonegestionale.it",
   allowLocalDemo: false,
   googleAnalyticsId: "",
   metaPixelId: ""
