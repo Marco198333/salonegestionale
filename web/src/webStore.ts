@@ -67,9 +67,23 @@ export type SalonData = {
   treatments: Treatment[];
 };
 
+export type CookieConsentPreferences = {
+  necessary: true;
+  analytics: boolean;
+  marketing: boolean;
+};
+
+export type CookieConsentRecord = {
+  version: string;
+  preferences: CookieConsentPreferences;
+  decidedAt: string;
+  expiresAt: string;
+};
+
 const STORAGE_KEY = 'salone-pro-web-standalone-v1';
 export const SESSION_KEY = 'salone-pro-web-session';
-export const API_TOKEN_KEY = 'salone-pro-api-token';
+export const COOKIE_CONSENT_KEY = 'salone-pro-cookie-consent-v1';
+export const COOKIE_CONSENT_VERSION = '2026-06-16';
 
 declare global {
   interface Window {
@@ -77,7 +91,12 @@ declare global {
       apiBaseUrl?: string;
       siteUrl?: string;
       allowLocalDemo?: boolean;
+      googleAnalyticsId?: string;
+      metaPixelId?: string;
     };
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
   }
 }
 
@@ -209,6 +228,51 @@ export const saveSalonData = (data: SalonData) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
+export const defaultCookieConsent = (): CookieConsentPreferences => ({
+  necessary: true,
+  analytics: false,
+  marketing: false
+});
+
+const consentExpiry = () => {
+  const expires = new Date();
+  expires.setMonth(expires.getMonth() + 6);
+  return expires.toISOString();
+};
+
+export const loadCookieConsent = (): CookieConsentRecord | null => {
+  if (typeof window === 'undefined') return null;
+  const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved) as CookieConsentRecord;
+    if (parsed.version !== COOKIE_CONSENT_VERSION) return null;
+    if (!parsed.expiresAt || new Date(parsed.expiresAt).getTime() < Date.now()) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+export const saveCookieConsent = (preferences: CookieConsentPreferences): CookieConsentRecord => {
+  const record: CookieConsentRecord = {
+    version: COOKIE_CONSENT_VERSION,
+    preferences: {
+      necessary: true,
+      analytics: Boolean(preferences.analytics),
+      marketing: Boolean(preferences.marketing)
+    },
+    decidedAt: new Date().toISOString(),
+    expiresAt: consentExpiry()
+  };
+  localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(record));
+  return record;
+};
+
+export const clearCookieConsent = () => {
+  localStorage.removeItem(COOKIE_CONSENT_KEY);
+};
+
 const isLocalHost = () => {
   if (typeof window === 'undefined') return false;
   const host = window.location.hostname;
@@ -231,7 +295,20 @@ export const canUseLocalDemo = () => {
     || isLocalHost();
 };
 
-const apiToken = () => localStorage.getItem(API_TOKEN_KEY) || '';
+const cookieValue = (name: string) => {
+  if (typeof document === 'undefined') return '';
+  const prefix = `${name}=`;
+  const match = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+  if (!match) return '';
+  try {
+    return decodeURIComponent(match.slice(prefix.length));
+  } catch {
+    return match.slice(prefix.length);
+  }
+};
 
 const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   const baseUrl = apiBaseUrl();
@@ -239,13 +316,13 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
 
   const headers = new Headers(options.headers || {});
   if (!headers.has('content-type') && options.body) headers.set('content-type', 'application/json');
-  const token = apiToken();
-  if (token) headers.set('authorization', `Bearer ${token}`);
+  const csrfToken = cookieValue('salone_csrf');
+  if (csrfToken && options.method && options.method !== 'GET') headers.set('x-csrf-token', csrfToken);
 
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers,
-    credentials: 'omit'
+    credentials: 'include'
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -255,25 +332,24 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
 };
 
 export const loginWithProductionApi = async (email: string, password: string) => {
-  const body = await apiFetch<{ token: string; data: SalonData }>('/api/auth/login', {
+  const body = await apiFetch<{ data: SalonData }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });
-  localStorage.setItem(API_TOKEN_KEY, body.token);
   localStorage.setItem(SESSION_KEY, '1');
   saveSalonData(body.data);
   return body.data;
 };
 
 export const loadSalonDataFromApi = async () => {
-  if (!hasProductionApi() || !apiToken()) return null;
+  if (!hasProductionApi() || !localStorage.getItem(SESSION_KEY)) return null;
   const body = await apiFetch<{ data: SalonData }>('/api/app/bootstrap');
   saveSalonData(body.data);
   return body.data;
 };
 
 export const saveSalonDataToApi = async (data: SalonData) => {
-  if (!hasProductionApi() || !apiToken()) return false;
+  if (!hasProductionApi() || !localStorage.getItem(SESSION_KEY)) return false;
   await apiFetch<{ ok: true }>('/api/app/bootstrap', {
     method: 'PUT',
     body: JSON.stringify({ data })
@@ -290,8 +366,34 @@ export const submitLeadToApi = async (payload: Record<string, FormDataEntryValue
   return true;
 };
 
-export const clearProductionSession = () => {
-  localStorage.removeItem(API_TOKEN_KEY);
+export const submitLeadToNetlify = async (payload: Record<string, FormDataEntryValue>) => {
+  if (typeof window === 'undefined') return false;
+  const formPayload = new URLSearchParams();
+  formPayload.set('form-name', 'salonepro-lead');
+  formPayload.set('source', 'website');
+  Object.entries(payload).forEach(([key, value]) => {
+    formPayload.set(key, String(value || ''));
+  });
+
+  const response = await fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formPayload.toString()
+  });
+  if (!response.ok) throw new Error('Invio Netlify non riuscito');
+  return true;
+};
+
+export const clearProductionSession = async () => {
+  try {
+    if (hasProductionApi()) {
+      await apiFetch<{ ok: true }>('/api/auth/logout', { method: 'POST' });
+    }
+  } catch {
+    // Il logout locale deve funzionare anche se la rete non risponde.
+  } finally {
+    localStorage.removeItem(SESSION_KEY);
+  }
 };
 
 export const resetSalonData = () => {

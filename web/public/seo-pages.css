@@ -64,12 +64,14 @@ nav {
   flex-wrap: wrap;
 }
 
-a.button {
+a.button,
+button.button {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 10px 16px;
+  border: 0;
   border-radius: 999px;
   background: #2b1b25;
   color: #fff;
@@ -147,9 +149,210 @@ article strong {
   border-block: 1px solid var(--line);
 }
 
+.content {
+  display: grid;
+  gap: 18px;
+  padding: 10px 0 74px;
+}
+
+.content h2,
+.faq h2,
+.internal-links h2 {
+  margin-bottom: 4px;
+}
+
+.content p {
+  max-width: 880px;
+}
+
+.keyword-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 920px;
+  padding: 0;
+  margin: 8px 0 0;
+  list-style: none;
+}
+
+.keyword-list li {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .66);
+  color: #4d4048;
+  font-weight: 760;
+}
+
+.faq {
+  display: grid;
+  gap: 14px;
+  padding: 20px 0 70px;
+}
+
+.faq article {
+  min-height: 0;
+}
+
+.faq h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.internal-links {
+  padding: 0 0 82px;
+}
+
+.link-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.link-row a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .76);
+  color: var(--ink);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.cta-panel {
+  display: grid;
+  gap: 14px;
+  margin: 0 auto 84px;
+  padding: 28px;
+  border: 1px solid rgba(33, 23, 29, .12);
+  border-radius: 8px;
+  background: #2b1b25;
+  color: #fff;
+}
+
+.cta-panel p {
+  color: rgba(255, 255, 255, .82);
+}
+
 footer {
   padding: 32px 0;
   color: var(--muted);
+}
+
+footer a {
+  color: var(--ink);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+footer button {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.cookie-banner {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  display: grid;
+  gap: 14px;
+  width: min(620px, calc(100vw - 36px));
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 8px;
+  background: rgba(255, 250, 245, .96);
+  box-shadow: 0 26px 76px rgba(33, 23, 29, .24);
+  backdrop-filter: blur(18px);
+}
+
+.cookie-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.cookie-copy {
+  display: grid;
+  gap: 10px;
+  padding-right: 38px;
+}
+
+.cookie-copy h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.cookie-copy p {
+  max-width: none;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cookie-links,
+.cookie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cookie-links a {
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.cookie-settings {
+  display: grid;
+  gap: 8px;
+}
+
+.cookie-toggle {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(43, 27, 37, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .68);
+}
+
+.cookie-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: #13776e;
+}
+
+.cookie-toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.cookie-toggle small {
+  color: var(--muted);
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.cookie-actions {
+  justify-content: flex-end;
 }
 
 @media (max-width: 820px) {
@@ -162,5 +365,25 @@ footer {
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .keyword-list {
+    grid-template-columns: 1fr;
+  }
+
+  .cookie-banner {
+    right: 10px;
+    bottom: 10px;
+    width: min(100% - 20px, 620px);
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+  }
+
+  .cookie-actions {
+    justify-content: stretch;
+  }
+
+  .cookie-actions .button {
+    width: 100%;
   }
 }

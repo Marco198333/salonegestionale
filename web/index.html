@@ -8,7 +8,9 @@
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="keywords" content="gestionale parrucchieri, software parrucchieri, agenda parrucchieri online, gestionale salone, prenotazioni online parrucchieri, prenotazioni online salone, gestionale barber shop, gestionale centro estetico, schede colore parrucchieri, reminder WhatsApp salone, clienti dormienti salone, gestionale parrucchieri zero commissioni" />
     <link rel="canonical" href="https://salonepro.it/" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="it_IT" />
@@ -22,6 +24,19 @@
     <title>Gestionale Parrucchieri con Agenda Online | SalonePro</title>
   </head>
   <body>
+    <form name="salonepro-lead" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="salonepro-lead" />
+      <input type="hidden" name="source" value="website" />
+      <input name="salonName" />
+      <input name="city" />
+      <input name="phone" />
+      <input name="email" />
+      <textarea name="message"></textarea>
+      <input name="privacyAccepted" />
+      <input name="marketingConsent" />
+      <input name="consentVersion" />
+      <input name="bot-field" />
+    </form>
     <div id="root"></div>
     <script src="/config.js"></script>
     <script type="module" src="/src/main.tsx"></script>

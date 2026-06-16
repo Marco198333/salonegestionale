@@ -29,7 +29,8 @@ body {
 
 button,
 input,
-select { font: inherit; }
+select,
+textarea { font: inherit; }
 
 button { cursor: pointer; }
 
@@ -823,8 +824,33 @@ p {
   font-weight: 850;
 }
 
+.lead-form .check-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  color: #5f535b;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 760;
+}
+
+.check-row input {
+  width: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+  padding: 0;
+  accent-color: var(--rose);
+}
+
+.check-row a {
+  color: var(--rose);
+  font-weight: 900;
+}
+
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -834,9 +860,18 @@ select {
   color: var(--ink);
 }
 
+textarea {
+  min-height: 118px;
+  resize: vertical;
+}
+
 .lead-form p {
   color: var(--green);
   font-weight: 850;
+}
+
+.netlify-honeypot {
+  display: none;
 }
 
 .price-grid article {
@@ -880,6 +915,160 @@ select {
   background: rgba(200, 68, 114, .12);
   color: #922b4c;
   font-weight: 850;
+}
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 42px 0 52px;
+  color: #5f535b;
+}
+
+.site-footer > div {
+  display: grid;
+  gap: 4px;
+}
+
+.site-footer strong {
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.site-footer nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.site-footer a,
+.site-footer button {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid rgba(43, 27, 37, .12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .58);
+  color: var(--ink);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.cookie-banner {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 120;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: min(620px, calc(100vw - 36px));
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, .56);
+  border-radius: 8px;
+  background: rgba(255, 250, 245, .96);
+  color: var(--ink);
+  box-shadow: 0 26px 76px rgba(33, 23, 29, .24);
+  backdrop-filter: blur(18px);
+}
+
+.cookie-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(43, 27, 37, .12);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 850;
+}
+
+.cookie-copy {
+  display: grid;
+  gap: 10px;
+  padding-right: 38px;
+}
+
+.cookie-copy h2 {
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.cookie-copy p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.cookie-links,
+.cookie-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cookie-links a {
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.cookie-settings {
+  display: grid;
+  gap: 8px;
+}
+
+.cookie-toggle {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 11px;
+  border: 1px solid rgba(43, 27, 37, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .68);
+}
+
+.cookie-toggle input {
+  width: 20px;
+  min-height: 20px;
+  margin-top: 2px;
+  padding: 0;
+  accent-color: var(--green);
+}
+
+.cookie-toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.cookie-toggle small {
+  color: var(--muted);
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.cookie-toggle.disabled {
+  opacity: .82;
+}
+
+.cookie-actions {
+  justify-content: flex-end;
+}
+
+.cookie-actions .btn,
+.cookie-actions .btn-yellow {
+  border-color: rgba(43, 27, 37, .14);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: none;
 }
 
 /* Fashion editorial marketing layer */
@@ -1268,7 +1457,8 @@ select {
 }
 
 input,
-select {
+select,
+textarea {
   border: 0;
   border-bottom: 1px solid rgba(43, 27, 37, .18);
   border-radius: 0;
@@ -1276,6 +1466,7 @@ select {
 }
 
 .lead-form input,
+.lead-form textarea,
 .login-card input {
   border-radius: 0;
 }
@@ -1682,6 +1873,15 @@ select {
   .faq-list article:last-child {
     border-bottom: 0;
   }
+
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .site-footer nav {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1752,6 +1952,22 @@ select {
 
   .app-main {
     padding: 14px;
+  }
+
+  .cookie-banner {
+    right: 10px;
+    bottom: 10px;
+    width: min(100% - 20px, 620px);
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+  }
+
+  .cookie-actions {
+    justify-content: stretch;
+  }
+
+  .cookie-actions .btn {
+    width: 100%;
   }
 }
 

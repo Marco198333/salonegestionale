@@ -1,21 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import {
   Appointment,
+  COOKIE_CONSENT_VERSION,
+  CookieConsentPreferences,
   clearProductionSession,
   Customer,
   SESSION_KEY,
   SalonData,
   createId,
   dateInput,
+  defaultCookieConsent,
   hasProductionApi,
+  loadCookieConsent,
   loadSalonData,
   loadSalonDataFromApi,
   loginWithProductionApi,
   money,
+  saveCookieConsent,
   saveSalonData,
   saveSalonDataToApi,
   shortDateTime,
   submitLeadToApi,
+  submitLeadToNetlify,
   timeInput
 } from './webStore';
 import './web.css';
@@ -48,15 +54,15 @@ const publicFeatures = [
 
 const salonMoments = [
   ['Promemoria appuntamento', 'Il reminder WhatsApp riduce telefonate, dimenticanze e conferme manuali.'],
-  ['Tempo posa colore', 'L agenda mostra quando l operatrice e libera durante posa e rifinitura.'],
+  ['Tempo posa colore', "L'agenda mostra quando l'operatrice è libera durante posa e rifinitura."],
   ['Cliente dormiente', 'Una lista pronta aiuta a recuperare chi non prenota da settimane.']
 ];
 
 const seoFaqs = [
   ['Quale gestionale parrucchieri scegliere?', 'Un salone piccolo o medio deve cercare agenda online, prenotazioni dirette, schede colore, clienti esportabili e supporto italiano. SalonePro nasce su questi punti.'],
-  ['Quanto costa un software parrucchieri?', 'Il modello consigliato e canone fisso: da 29 euro al mese per agenda e clienti, senza commissioni sulle prenotazioni dirette del salone.'],
-  ['E un alternativa a Treatwell o Fresha?', 'Si posiziona come alternativa proprietaria: non marketplace, non portale clienti, ma mini-sito e booking diretto del salone.'],
-  ['Funziona anche per barber e centri estetici?', 'Si. La struttura e pensata per parrucchieri, barber shop, saloni beauty e centri estetici con agenda, servizi, clienti e promemoria.']
+  ['Quanto costa un software parrucchieri?', 'Il modello consigliato è canone fisso: da 29 euro al mese per agenda e clienti, senza commissioni sulle prenotazioni dirette del salone.'],
+  ["È un'alternativa a Treatwell o Fresha?", 'Sì, si posiziona come alternativa proprietaria: non marketplace, non portale clienti, ma mini-sito e booking diretto del salone.'],
+  ['Funziona anche per barber e centri estetici?', 'Sì. La struttura è pensata per parrucchieri, barber shop, saloni beauty e centri estetici con agenda, servizi, clienti e promemoria.']
 ];
 
 const seoIntents = [
@@ -96,6 +102,156 @@ const Icon: React.FC<{ name: 'calendar' | 'spark' | 'message' | 'chart' | 'user'
     </svg>
   );
 };
+
+const cookiePreferenceEvent = 'salonepro:open-cookie-preferences';
+
+const openCookiePreferences = () => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(cookiePreferenceEvent));
+};
+
+const loadExternalScript = (id: string, src: string) => {
+  if (typeof document === 'undefined' || document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  script.async = true;
+  script.src = src;
+  document.head.appendChild(script);
+};
+
+const ensureGtag = () => {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || ((...args: unknown[]) => {
+    window.dataLayer?.push(args);
+  });
+  return window.gtag;
+};
+
+const applyCookieConsentEffects = (preferences: CookieConsentPreferences) => {
+  if (typeof window === 'undefined') return;
+  const analyticsId = window.SALONE_PRO_CONFIG?.googleAnalyticsId?.trim();
+  const metaPixelId = window.SALONE_PRO_CONFIG?.metaPixelId?.trim();
+
+  if (window.gtag) {
+    window.gtag('consent', 'update', {
+      analytics_storage: preferences.analytics ? 'granted' : 'denied',
+      ad_storage: preferences.marketing ? 'granted' : 'denied',
+      ad_user_data: preferences.marketing ? 'granted' : 'denied',
+      ad_personalization: preferences.marketing ? 'granted' : 'denied'
+    });
+  }
+
+  if (preferences.analytics && analyticsId) {
+    const gtag = ensureGtag();
+    gtag('consent', 'default', {
+      analytics_storage: 'granted',
+      ad_storage: preferences.marketing ? 'granted' : 'denied',
+      ad_user_data: preferences.marketing ? 'granted' : 'denied',
+      ad_personalization: preferences.marketing ? 'granted' : 'denied'
+    });
+    loadExternalScript('salonepro-google-analytics', `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(analyticsId)}`);
+    gtag('js', new Date());
+    gtag('config', analyticsId, { anonymize_ip: true });
+  }
+
+  if (preferences.marketing && metaPixelId) {
+    window.fbq = window.fbq || ((...args: unknown[]) => {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(['fbq', ...args]);
+    });
+    loadExternalScript('salonepro-meta-pixel', 'https://connect.facebook.net/en_US/fbevents.js');
+    window.fbq('init', metaPixelId);
+    window.fbq('track', 'PageView');
+  }
+};
+
+const CookieConsentBanner: React.FC = () => {
+  const initialRecord = loadCookieConsent();
+  const [visible, setVisible] = useState(!initialRecord);
+  const [mode, setMode] = useState<'notice' | 'settings'>('notice');
+  const [preferences, setPreferences] = useState<CookieConsentPreferences>(initialRecord?.preferences || defaultCookieConsent());
+
+  useEffect(() => {
+    if (initialRecord) applyCookieConsentEffects(initialRecord.preferences);
+  }, []);
+
+  useEffect(() => {
+    const open = () => {
+      const saved = loadCookieConsent();
+      setPreferences(saved?.preferences || defaultCookieConsent());
+      setMode('settings');
+      setVisible(true);
+    };
+    window.addEventListener(cookiePreferenceEvent, open);
+    return () => window.removeEventListener(cookiePreferenceEvent, open);
+  }, []);
+
+  const commit = (next: CookieConsentPreferences) => {
+    const saved = saveCookieConsent(next);
+    setPreferences(saved.preferences);
+    applyCookieConsentEffects(saved.preferences);
+    setVisible(false);
+  };
+
+  if (!visible) return null;
+
+  return (
+    <section className="cookie-banner" role="dialog" aria-label="Preferenze cookie">
+      <button className="cookie-close" type="button" aria-label="Chiudi e usa solo cookie tecnici" onClick={() => commit(defaultCookieConsent())}>×</button>
+      <div className="cookie-copy">
+        <span className="pill">Privacy</span>
+        <h2>Cookie e dati di navigazione</h2>
+        {mode === 'notice' ? (
+          <p>Usiamo solo strumenti tecnici necessari per far funzionare il sito. Statistiche e marketing vengono attivati solo se dai consenso. Puoi rifiutare, accettare tutto o scegliere le finalità.</p>
+        ) : (
+          <p>Modifica le preferenze per finalità. Le scelte valgono 6 mesi e puoi riaprirle dal footer.</p>
+        )}
+        <div className="cookie-links">
+          <a href="/privacy.html">Privacy policy</a>
+          <a href="/cookie-policy.html">Cookie policy</a>
+        </div>
+      </div>
+
+      {mode === 'settings' && (
+        <div className="cookie-settings">
+          <label className="cookie-toggle disabled">
+            <input type="checkbox" checked disabled />
+            <span><strong>Tecnici necessari</strong><small>Sessione, sicurezza, preferenze consenso e funzionamento del sito.</small></span>
+          </label>
+          <label className="cookie-toggle">
+            <input type="checkbox" checked={preferences.analytics} onChange={(event) => setPreferences({ ...preferences, analytics: event.target.checked })} />
+            <span><strong>Statistiche</strong><small>Misurazione visite e conversioni, solo dopo consenso.</small></span>
+          </label>
+          <label className="cookie-toggle">
+            <input type="checkbox" checked={preferences.marketing} onChange={(event) => setPreferences({ ...preferences, marketing: event.target.checked })} />
+            <span><strong>Marketing</strong><small>Campagne e pixel pubblicitari, solo dopo consenso esplicito.</small></span>
+          </label>
+        </div>
+      )}
+
+      <div className="cookie-actions">
+        <button type="button" className="btn btn-soft" onClick={() => commit(defaultCookieConsent())}>Rifiuta</button>
+        {mode === 'notice' && <button type="button" className="btn btn-ghost" onClick={() => setMode('settings')}>Personalizza</button>}
+        {mode === 'settings' && <button type="button" className="btn btn-ghost" onClick={() => commit(preferences)}>Salva scelte</button>}
+        <button type="button" className="btn btn-yellow" onClick={() => commit({ necessary: true, analytics: true, marketing: true })}>Accetta tutto</button>
+      </div>
+    </section>
+  );
+};
+
+const PublicFooter: React.FC = () => (
+  <footer className="site-footer wrap">
+    <div>
+      <strong>SalonePro</strong>
+      <span>Gestionale parrucchieri, barber e centri estetici.</span>
+    </div>
+    <nav aria-label="Link legali">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/cookie-policy.html">Cookie</a>
+      <button type="button" onClick={openCookiePreferences}>Preferenze cookie</button>
+    </nav>
+  </footer>
+);
 
 const LiveSalonConsole: React.FC<{ onOpen: () => void }> = ({ onOpen }) => (
   <div className="live-console">
@@ -200,16 +356,16 @@ const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
         <div>
           <span className="pill">Area clienti SalonePro</span>
           <h1>Accesso riservato ai saloni attivi.</h1>
-          <p>Questa pagina e solo per parrucchieri, barber e centri estetici con account SalonePro gia attivato. Ogni salone entra con credenziali personali salvate nel database, sessione server e dati separati.</p>
+          <p>Questa pagina è solo per parrucchieri, barber e centri estetici con account SalonePro già attivato. Ogni salone entra con credenziali personali salvate nel database, sessione server e dati separati.</p>
           <div className="credential-box">
             <strong>{apiEnabled ? 'Account cliente richiesto' : 'Backend non collegato'}</strong>
-            <span>{apiEnabled ? 'Usa email e password ricevute dopo l attivazione.' : 'Avvia l API o configura il proxy /api prima del go-live.'}</span>
+            <span>{apiEnabled ? "Usa email e password ricevute dopo l'attivazione." : "Avvia l'API o configura il proxy /api prima del go-live."}</span>
           </div>
         </div>
         <form className="login-card" onSubmit={submit}>
           <label>Email<input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="titolare@salone.it" autoComplete="username" required /></label>
           <label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required autoFocus /></label>
-          {!apiEnabled && <p className="muted">In locale questo form resta bloccato finche non colleghi l API. In produzione usera il dominio o l endpoint API configurato.</p>}
+          {!apiEnabled && <p className="muted">In locale questo form resta bloccato finché non colleghi l'API. In produzione userà il dominio o l'endpoint API configurato.</p>}
           {error && <div className="form-error">{error}</div>}
           <button className="btn btn-yellow" disabled={loading || !apiEnabled}>{loading ? 'Accesso...' : 'Accedi al gestionale'} <span>→</span></button>
         </form>
@@ -231,8 +387,9 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
     const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
     setLeadStatus('Invio richiesta...');
     try {
-      const sentToApi = await submitLeadToApi(payload);
-      if (!sentToApi) {
+      const sentToNetlify = await submitLeadToNetlify(payload).catch(() => false);
+      const sentToApi = sentToNetlify ? false : await submitLeadToApi(payload);
+      if (!sentToNetlify && !sentToApi) {
         const leads = JSON.parse(localStorage.getItem('salone-pro-leads') || '[]') as unknown[];
         localStorage.setItem('salone-pro-leads', JSON.stringify([...leads, { ...payload, createdAt: new Date().toISOString() }]));
       }
@@ -271,7 +428,7 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
             <div className="wrap hero-content">
               <div className="hero-copy">
                 <span className="pill glass">Software gestionale parrucchieri e saloni</span>
-                <h1>Il gestionale parrucchieri che riempie l agenda senza commissioni.</h1>
+                <h1>Il gestionale parrucchieri che riempie l'agenda senza commissioni.</h1>
                 <p>SalonePro e il software web per parrucchieri, barber e centri estetici: agenda online, prenotazioni dirette, schede colore, reminder WhatsApp, clienti dormienti e statistiche del salone.</p>
                 <div className="hero-actions">
                   <button className="btn btn-rose" onClick={openLeadForm}>Richiedi demo guidata <span>→</span></button>
@@ -384,12 +541,28 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
             <div>
               <span className="pill">Attivazione software parrucchieri</span>
               <h2>Vuoi vedere SalonePro su un salone reale?</h2>
-              <p>Lascia nome salone, citta e WhatsApp. Ti prepariamo un accesso guidato con agenda, scheda colore, prenotazioni online e clienti dormienti in meno di 15 minuti.</p>
+              <p>Lascia nome salone, città e WhatsApp. Ti prepariamo un accesso guidato con agenda, scheda colore, prenotazioni online e clienti dormienti in meno di 15 minuti.</p>
             </div>
-            <form className="lead-form" onSubmit={submitLead}>
+            <form className="lead-form" name="salonepro-lead" method="POST" data-netlify="true" onSubmit={submitLead}>
+              <input type="hidden" name="form-name" value="salonepro-lead" />
+              <input type="hidden" name="source" value="website" />
+              <p className="netlify-honeypot" aria-hidden="true">
+                <label>Non compilare<input name="bot-field" tabIndex={-1} autoComplete="off" /></label>
+              </p>
               <label>Nome salone<input name="salonName" required /></label>
               <label>Città<input name="city" required /></label>
               <label>WhatsApp<input name="phone" required /></label>
+              <label>Email<input name="email" type="email" placeholder="opzionale" /></label>
+              <label>Messaggio<textarea name="message" rows={4} placeholder="Obiettivo principale: agenda, WhatsApp, clienti, import dati..." /></label>
+              <label className="check-row">
+                <input type="checkbox" name="privacyAccepted" value="yes" required />
+                <span>Ho letto la <a href="/privacy.html" target="_blank" rel="noreferrer">privacy policy</a> e autorizzo il contatto per gestire la richiesta demo.</span>
+              </label>
+              <label className="check-row">
+                <input type="checkbox" name="marketingConsent" value="yes" />
+                <span>Acconsento a ricevere aggiornamenti commerciali su SalonePro. Posso revocare il consenso in qualsiasi momento.</span>
+              </label>
+              <input type="hidden" name="consentVersion" value={COOKIE_CONSENT_VERSION} />
               <button className="btn btn-yellow">Richiedi demo <span>→</span></button>
               {leadStatus && <p>{leadStatus}</p>}
             </form>
@@ -418,7 +591,7 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
           <section className="page-head wrap">
             <span className="pill">Costo gestionale parrucchieri</span>
             <h1>Prezzi software parrucchieri: canone fisso e zero commissioni.</h1>
-            <p>Il listino e pensato per essere capito subito da saloni, barber e centri estetici: nessuna commissione sulle prenotazioni online dirette, setup guidato e piani scalabili.</p>
+            <p>Il listino è pensato per essere capito subito da saloni, barber e centri estetici: nessuna commissione sulle prenotazioni online dirette, setup guidato e piani scalabili.</p>
           </section>
           <section className="wrap price-grid">
             <article><h2>Base</h2><strong>29€/mese</strong><p>Agenda parrucchieri online, archivio clienti, servizi, operatori e configurazione salone.</p></article>
@@ -429,6 +602,7 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
       )}
 
       {view === 'login' && <LoginPage onLogin={onLogin} />}
+      <PublicFooter />
     </div>
   );
 };
@@ -689,7 +863,7 @@ const Customers: React.FC<{ data: SalonData; persist: (data: SalonData, message?
 const Automations: React.FC<{ data: SalonData }> = ({ data }) => {
   const dormant = data.customers.filter((customer) => !data.appointments.some((appointment) => appointment.customerId === customer.id && appointment.status === 'Scheduled'));
   const templates = [
-    ['Reminder appuntamento', 'Ciao {nome}, ti ricordiamo l appuntamento di domani da {salone}. Rispondi OK per confermare.'],
+    ['Reminder appuntamento', "Ciao {nome}, ti ricordiamo l'appuntamento di domani da {salone}. Rispondi OK per confermare."],
     ['Cliente dormiente', 'Ciao {nome}, è da un po che non ti vediamo. Ti va di prenotare una piega questa settimana?'],
     ['Recensione Google', 'Ciao {nome}, grazie per essere passata da {salone}. Ci lasci una recensione? {review}'],
     ['Compleanno', 'Auguri {nome}! Per te un trattamento speciale se prenoti entro 7 giorni.']
@@ -835,8 +1009,12 @@ const WebApp: React.FC = () => {
     }
   }, [publicView]);
 
-  if (authenticated) return <AppShell onLogout={onLogout} />;
-  return <PublicSite view={publicView} setView={setPublicView} onLogin={() => setAuthenticated(true)} />;
+  return (
+    <>
+      {authenticated ? <AppShell onLogout={onLogout} /> : <PublicSite view={publicView} setView={setPublicView} onLogin={() => setAuthenticated(true)} />}
+      <CookieConsentBanner />
+    </>
+  );
 };
 
 export default WebApp;
