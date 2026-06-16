@@ -20,7 +20,6 @@ import {
   saveSalonData,
   saveSalonDataToApi,
   shortDateTime,
-  submitLeadToApi,
   submitLeadToNetlify,
   timeInput
 } from './webStore';
@@ -384,12 +383,12 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
 
   const submitLead = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
+    const form = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(form).entries());
     setLeadStatus('Invio richiesta...');
     try {
-      const sentToNetlify = await submitLeadToNetlify(payload).catch(() => false);
-      const sentToApi = sentToNetlify ? false : await submitLeadToApi(payload);
-      if (!sentToNetlify && !sentToApi) {
+      const sentToNetlify = await submitLeadToNetlify(payload);
+      if (!sentToNetlify) {
         const leads = JSON.parse(localStorage.getItem('salone-pro-leads') || '[]') as unknown[];
         localStorage.setItem('salone-pro-leads', JSON.stringify([...leads, { ...payload, createdAt: new Date().toISOString() }]));
       }
@@ -397,7 +396,7 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
     } catch (err) {
       setLeadStatus(err instanceof Error ? err.message : 'Non siamo riusciti a inviare la richiesta.');
     }
-    event.currentTarget.reset();
+    form.reset();
   };
 
   return (

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <title>Netlify Forms - SalonePro</title>
+  </head>
+  <body>
+    <form name="salonepro-lead" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/grazie.html">
+      <input type="hidden" name="form-name" value="salonepro-lead" />
+      <input type="hidden" name="source" value="website" />
+      <p hidden>
+        <label>Non compilare <input name="bot-field" /></label>
+      </p>
+      <p><label>Nome salone <input name="salonName" /></label></p>
+      <p><label>Citta <input name="city" /></label></p>
+      <p><label>Nome contatto <input name="contactName" /></label></p>
+      <p><label>WhatsApp <input name="phone" /></label></p>
+      <p><label>Email <input name="email" type="email" /></label></p>
+      <p><label>Messaggio <textarea name="message"></textarea></label></p>
+      <p><label>Privacy <input name="privacyAccepted" /></label></p>
+      <p><label>Marketing <input name="marketingConsent" /></label></p>
+      <p><label>Versione consenso <input name="consentVersion" /></label></p>
+      <p><button type="submit">Invia</button></p>
+    </form>
+  </body>
+</html>

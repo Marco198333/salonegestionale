@@ -282,8 +282,8 @@ const isLocalHost = () => {
 export const apiBaseUrl = () => {
   const value = typeof window !== 'undefined' ? window.SALONE_PRO_CONFIG?.apiBaseUrl || '' : '';
   const configured = value.trim().replace(/\/+$/, '');
+  if (configured === 'same-origin' && typeof window !== 'undefined') return window.location.origin;
   if (configured) return configured;
-  if (typeof window !== 'undefined' && !isLocalHost()) return window.location.origin;
   return '';
 };
 
@@ -353,15 +353,6 @@ export const saveSalonDataToApi = async (data: SalonData) => {
   await apiFetch<{ ok: true }>('/api/app/bootstrap', {
     method: 'PUT',
     body: JSON.stringify({ data })
-  });
-  return true;
-};
-
-export const submitLeadToApi = async (payload: Record<string, FormDataEntryValue>) => {
-  if (!hasProductionApi()) return false;
-  await apiFetch<{ ok: true }>('/api/public/leads', {
-    method: 'POST',
-    body: JSON.stringify(payload)
   });
   return true;
 };
