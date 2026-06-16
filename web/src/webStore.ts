@@ -371,8 +371,7 @@ export const submitLeadToNetlify = async (payload: Record<string, FormDataEntryV
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formPayload.toString()
   });
-  if (!response.ok) throw new Error('Invio Netlify non riuscito');
-  return true;
+  return response.ok;
 };
 
 export const clearProductionSession = async () => {

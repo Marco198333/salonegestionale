@@ -24,6 +24,22 @@
     <title>Gestionale Parrucchieri con Agenda Online | SalonePro</title>
   </head>
   <body>
+    <form name="salonepro-lead" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/grazie.html" style="display:none" aria-hidden="true">
+      <input type="hidden" name="form-name" value="salonepro-lead" />
+      <input type="hidden" name="source" value="website" />
+      <p>
+        <label>Non compilare <input name="bot-field" /></label>
+      </p>
+      <input name="salonName" />
+      <input name="city" />
+      <input name="contactName" />
+      <input name="phone" />
+      <input name="email" type="email" />
+      <textarea name="message"></textarea>
+      <input name="privacyAccepted" />
+      <input name="marketingConsent" />
+      <input name="consentVersion" />
+    </form>
     <div id="root"></div>
     <script src="/config.js"></script>
     <script type="module" src="/src/main.tsx"></script>

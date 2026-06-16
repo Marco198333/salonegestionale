@@ -391,6 +391,8 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
       if (!sentToNetlify) {
         const leads = JSON.parse(localStorage.getItem('salone-pro-leads') || '[]') as unknown[];
         localStorage.setItem('salone-pro-leads', JSON.stringify([...leads, { ...payload, createdAt: new Date().toISOString() }]));
+        setLeadStatus('Modulo Netlify non ancora agganciato: abilita Form detection su Netlify e fai un redeploy completo.');
+        return;
       }
       setLeadStatus('Richiesta ricevuta. Ti ricontattiamo su WhatsApp per attivare la demo guidata.');
     } catch (err) {
@@ -542,7 +544,7 @@ const PublicSite: React.FC<{ view: PublicView; setView: (view: PublicView) => vo
               <h2>Vuoi vedere SalonePro su un salone reale?</h2>
               <p>Lascia nome salone, città e WhatsApp. Ti prepariamo un accesso guidato con agenda, scheda colore, prenotazioni online e clienti dormienti in meno di 15 minuti.</p>
             </div>
-            <form className="lead-form" name="salonepro-lead" method="POST" data-netlify="true" onSubmit={submitLead}>
+            <form className="lead-form" name="salonepro-lead" method="POST" action="/grazie.html" data-netlify="true" netlify-honeypot="bot-field" onSubmit={submitLead}>
               <input type="hidden" name="form-name" value="salonepro-lead" />
               <input type="hidden" name="source" value="website" />
               <p className="netlify-honeypot" aria-hidden="true">
